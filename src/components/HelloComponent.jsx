@@ -1,9 +1,6 @@
 
-
-
 class HelloComponent extends React.Component{
-    render(){
+    render (){
         return <div> Hello </div>;
     }
-}
-
+}    

@@ -8,6 +8,8 @@ var filter = require('gulp-filter');
 var newer = require('gulp-newer');
 var notify = require('gulp-notify');
 var plumber = require('gulp-plumber');
+var clean = require('gulp-clean');
+var cache = require('gulp-cache');
 var reload = browserSync.reload;
 var sass = require('gulp-sass');
 var sourcemaps = require('gulp-sourcemaps');
@@ -29,8 +31,9 @@ var jsFiles = {
 
     ],
     source: [
-        'src/components/Es6Component.jsx',
-        'src/components/component.jsx'
+        'src/components/*.jsx',
+        'src/components/table/*.jsx',
+        'src/components/index/*.jsx'
     ]
 };
 
@@ -60,17 +63,11 @@ gulp.task('copy-jquery', function () {
         .pipe(newer('assets/js/src/vendor/jquery.js'))
         .pipe(gulp.dest('assets/js/src/vendor'));
 });
-gulp.task('copy-require', function () {
-    return gulp.src('node_modules/requirejs/require.js')
-        .pipe(newer('assets/js/src/vendor/require.js'))
-        .pipe(gulp.dest('assets/js/src/vendor'));
-});
 gulp.task('copy-react-dom', function () {
     return gulp.src('node_modules/react-dom/dist/react-dom.js')
         .pipe(newer('assets/js/src/vendor/react-dom.js'))
         .pipe(gulp.dest('assets/js/src/vendor'));
 });
-
 // Copy assets/js/vendor/* to assets/js
 gulp.task('copy-js-vendor', function () {
     return gulp
@@ -78,14 +75,15 @@ gulp.task('copy-js-vendor', function () {
             'assets/js/src/vendor/react.js',
             'assets/js/src/vendor/react-dom.js',
             'assets/js/src/vendor/jquery.js',
-            'assets/js/src/vendor/require.js'
+            'assets/js/components/**/**.*js',
         ])
         .pipe(gulp.dest('assets/js'));
 });
 
 // Concatenate jsFiles.vendor and jsFiles.source into one JS file.
 // Run copy-react and eslint before concatenating
-gulp.task('concat', ['copy-react', 'copy-react-dom','copy-jquery', 'copy-require'], function () {
+gulp.task('concat', ['copy-react', 'copy-react-dom', 'copy-jquery', 
+], function () {
 
     var reloadOptions = {
         stream: true,
@@ -93,11 +91,9 @@ gulp.task('concat', ['copy-react', 'copy-react-dom','copy-jquery', 'copy-require
     return gulp.src(jsFiles.vendor.concat(jsFiles.source))
         .pipe(sourcemaps.init())
         .pipe(babel({
-            presets:['es2015', 'react'],
-            only: [
-                'src/components',
-            ],
-            compact: false            
+            presets: ['es2015', 'react'],
+
+            compact: false
         }))
         .pipe(concat('app.js'))
         .pipe(sourcemaps.write('./'))
@@ -138,7 +134,7 @@ gulp.task('sass', function () {
 gulp.task('watch', function () {
     gulp.watch('src/**/*.{js,jsx}', ['concat']);
     gulp.watch('src/**/*.scss', ['sass']);
-    gulp.watch('**/*.html',  ['html']);
+    gulp.watch('**/*.html', ['html']);
 });
 
 gulp.task('html', function () {
@@ -162,5 +158,6 @@ gulp.task('browsersync', function () {
 
     });
 });
-gulp.task('build', ['sass', 'copy-js-vendor', 'concat', 'html']);
+
+gulp.task('build', [ 'sass', 'copy-js-vendor', 'concat', 'html']);
 gulp.task('default', ['build', 'browsersync', 'watch']);
